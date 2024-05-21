@@ -14,7 +14,7 @@ import pywintypes
 import win32api
 import win32service
 import win32serviceutil
-from consts import HIVE, LOAD_HIVE_LINES, USER_MODE_TYPES
+from consts import HIVE, LOAD_HIVE_LINES, USER_MODE_TYPES, VERSION
 
 logger = logging.getLogger("CLI")
 
@@ -106,11 +106,10 @@ def get_file_metadata(file_path: str, attribute: str) -> str:
 def main() -> int:
     logging.basicConfig(format="[%(name)s] %(levelname)s: %(message)s", level=logging.INFO)
 
-    version = "1.3.0"
     present_services = get_present_services()
 
     print(
-        f"service-list-builder Version {version} - GPLv3\n",
+        f"service-list-builder Version {VERSION} - GPLv3\n",
     )
 
     if not ctypes.windll.shell32.IsUserAnAdmin():

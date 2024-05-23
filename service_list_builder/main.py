@@ -16,7 +16,7 @@ import win32service
 import win32serviceutil
 from consts import HIVE, LOAD_HIVE_LINES, USER_MODE_TYPES, VERSION
 
-logger = logging.getLogger("CLI")
+LOG_CLI = logging.getLogger("CLI")
 
 
 def read_value(path: str, value_name: str) -> Any | None:
@@ -72,7 +72,7 @@ def get_present_services() -> dict[str, str]:
 
             # handle (remove) user ID in service name
             if "_" in service_name:
-                logger.debug('removing "_" in "%s"', service_name)
+                LOG_CLI.debug('removing "_" in "%s"', service_name)
                 service_name = service_name.rpartition("_")[0]
 
             present_services[service_name.lower()] = service_name
@@ -156,7 +156,7 @@ def main() -> int:
     )
 
     if not ctypes.windll.shell32.IsUserAnAdmin():
-        logger.error("administrator privileges required")
+        LOG_CLI.error("administrator privileges required")
         return 1
 
     if getattr(sys, "frozen", False):
@@ -169,7 +169,7 @@ def main() -> int:
     if args.get_dependencies:
         lower_get_dependencies = args.get_dependencies.lower()
         if lower_get_dependencies not in present_services:
-            logger.error("%s not exists as a service", args.get_dependencies)
+            LOG_CLI.error("%s not exists as a service", args.get_dependencies)
             return 1
 
         dependencies = {
@@ -188,7 +188,7 @@ def main() -> int:
         return 0
 
     if not os.path.exists(args.config):
-        logger.error("config file %s not found", args.config)
+        LOG_CLI.error("config file %s not found", args.config)
         return 1
 
     config = ConfigParser(
@@ -226,7 +226,7 @@ def main() -> int:
 
         if len(missing_dependencies) > 0:
             has_dependency_errors = True
-            logger.error("%s depends on %s", service, ", ".join(missing_dependencies))
+            LOG_CLI.error("%s depends on %s", service, ", ".join(missing_dependencies))
 
     if has_dependency_errors:
         return 1
@@ -268,7 +268,7 @@ def main() -> int:
             path_match = re.match(r".*?\.(exe|sys)\b", image_path, re.IGNORECASE)
 
             if path_match is None:
-                logger.error("path match failed for %s", image_path)
+                LOG_CLI.error("path match failed for %s", image_path)
                 unknown_company_service_count += 1
                 continue
 
@@ -330,7 +330,7 @@ def main() -> int:
             ds_lines.append(f'REN "%DRIVE_LETTER%:{binary}" "{file_name}{last_index}"')
             es_lines.append(f'REN "%DRIVE_LETTER%:{binary}{last_index}" "{file_name}"')
         else:
-            logger.info("item does not exist: %s... skipping", binary)
+            LOG_CLI.info("item does not exist: %s... skipping", binary)
 
     with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, f"{HIVE}\\Control\\Class") as key:
         num_subkeys = winreg.QueryInfoKey(key)[0]
@@ -373,7 +373,7 @@ def main() -> int:
             )
 
     if not ds_lines:
-        logger.info("there are no changes to write to the scripts")
+        LOG_CLI.info("there are no changes to write to the scripts")
         return 0
 
     for script_lines in (ds_lines, es_lines):
@@ -399,7 +399,7 @@ def main() -> int:
         for line in es_lines:
             file.write(f"{line}\n")
 
-    logger.info("done - scripts built in .\\%s", build_dir)
+    LOG_CLI.info("done - scripts built in .\\%s", build_dir)
 
     return 0
 

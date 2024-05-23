@@ -103,24 +103,7 @@ def get_file_metadata(file_path: str, attribute: str) -> str:
     return str(product_name)
 
 
-def main() -> int:
-    logging.basicConfig(format="[%(name)s] %(levelname)s: %(message)s", level=logging.INFO)
-
-    present_services = get_present_services()
-
-    print(
-        f"service-list-builder Version {VERSION} - GPLv3\n",
-    )
-
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        logger.error("administrator privileges required")
-        return 1
-
-    if getattr(sys, "frozen", False):
-        os.chdir(os.path.dirname(sys.executable))
-    elif __file__:
-        os.chdir(os.path.dirname(__file__))
-
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     group = parser.add_mutually_exclusive_group(required=True)
@@ -159,6 +142,29 @@ def main() -> int:
 
     if args.disable_running and not args.config:
         parser.error("--disable-running can only be used with --config")
+
+    return args
+
+
+def main() -> int:
+    logging.basicConfig(format="[%(name)s] %(levelname)s: %(message)s", level=logging.INFO)
+
+    present_services = get_present_services()
+
+    print(
+        f"service-list-builder Version {VERSION} - GPLv3\n",
+    )
+
+    if not ctypes.windll.shell32.IsUserAnAdmin():
+        logger.error("administrator privileges required")
+        return 1
+
+    if getattr(sys, "frozen", False):
+        os.chdir(os.path.dirname(sys.executable))
+    elif __file__:
+        os.chdir(os.path.dirname(__file__))
+
+    args = parse_args()
 
     if args.get_dependencies:
         lower_get_dependencies = args.get_dependencies.lower()
